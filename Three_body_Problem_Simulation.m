@@ -66,6 +66,11 @@ handles.iter = 1000;
 handles.steps = 0.01;
 handles.rep_freq = 10;
 set(handles.alert, 'String', 'READY');
+set(handles.show, 'Enable', 'off');
+set(handles.stop, 'Enable', 'off');
+set(handles.save, 'Enable', 'off');
+view(45,45);
+grid on;
 
 % Update handles structure
 guidata(hObject, handles);
@@ -643,13 +648,12 @@ function show_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 set(handles.stop, 'UserData', 0);
-cla('reset');
-axes(handles.sims);
-max_range = 0;
-
 if isempty(handles.hist)
     return
 end
+cla(handles.sims);
+axes(handles.sims);
+
 x1 = handles.hist(1).getaxis('x');
 x2 = handles.hist(2).getaxis('x');
 x3 = handles.hist(3).getaxis('x');
@@ -659,6 +663,8 @@ y3 = handles.hist(3).getaxis('y');
 z1 = handles.hist(1).getaxis('z');
 z2 = handles.hist(2).getaxis('z');
 z3 = handles.hist(3).getaxis('z');
+
+max_range = 0;
 for index = 1:length(handles.hist)
     max_dim = max([max(handles.hist(index).x), max(handles.hist(index).y) max(handles.hist(index).z)]);
     if max_dim > max_range
@@ -674,19 +680,13 @@ end
 az = str2double(get(handles.az, 'String'));
 el = str2double(get(handles.el, 'String'));
 view(az, el);
-grid on;
 hold on;
 set(handles.alert, 'String', 'SIMULATING...');
 steps = length(handles.hist(1).x);
 for i = 1:steps
-    tic
     if get(handles.stop, 'UserData')
         break
     end
-    
-%     [x1, y1, z1] = matsplit([handles.hist(1).x(i) handles.hist(1).y(i) handles.hist(1).z(i)]);
-%     [x2, y2, z2] = matsplit([handles.hist(2).x(i) handles.hist(2).y(i) handles.hist(2).z(i)]);
-%     [x3, y3, z3] = matsplit([handles.hist(3).x(i) handles.hist(3).y(i) handles.hist(3).z(i)]);
     
     addpoints(orbit1, x1(i), y1(i), z1(i));
     head1 = scatter3(x1(i), y1(i), z1(i), 'filled', 'MarkerFaceColor', 'r', 'MarkerEdgeColor', 'k');
@@ -715,14 +715,13 @@ for i = 1:steps
     delete(head1);
     delete(head2);
     delete(head3);
-    toc
 end
 if get(handles.stop, 'UserData')
     set(handles.alert, 'String', 'SIMULATION STOPPED');
 else
     set(handles.alert, 'String', 'SIMULATION COMPLETE');
 end
-set(handles.iterations, 'String', num2str(handles.iter));
+hold off;
 guidata(hObject, handles);
 
 
@@ -734,6 +733,10 @@ function start_Callback(hObject, eventdata, handles)
 % AU = 1.5e11;
 % V = 1e3;
 % M = 6e24;
+set(handles.show, 'Enable', 'off');
+set(handles.stop, 'Enable', 'off');
+set(handles.save, 'Enable', 'off');
+set(handles.load, 'Enable', 'off');
 
 handles.mass = [str2double(get(handles.mass1, 'String')), ...
                 str2double(get(handles.mass2, 'String')), ...
@@ -763,8 +766,16 @@ else
     handles.integrator = RK4_integrator(handles.steps, bodies);
 end
 set(handles.alert, 'String', 'CALCULATING ORBIT...');
-handles.hist = calc_orbit(handles.integrator, handles.iter, handles.rep_freq);
+[handles.hist, iter] = calc_orbit(handles.integrator, handles.iter, handles.rep_freq);
+
+if iter ~= handles.iter
+    set(handles.iterations, 'String', num2str(iter));
+end
 set(handles.alert, 'String', 'ORBIT CALCULATION COMPLETE');
+set(handles.show, 'Enable', 'on');
+set(handles.stop, 'Enable', 'on');
+set(handles.save, 'Enable', 'on');
+set(handles.load, 'Enable', 'on');
 guidata(hObject, handles);
 
 
@@ -784,9 +795,11 @@ handles.steps = 0.01;
 handles.rep_freq = 10;
 handles.method = 'euler';
 handles.hist = [];
-set(handles.az, 'String', '0');
-set(handles.el, 'String', '90');
 cla('reset');
+set(handles.az, 'String', '45');
+set(handles.el, 'String', '45');
+view(45,45);
+grid on;
 set(handles.methods, 'selectedobject', handles.euler);
 set(handles.mass1, 'String', '0');
 set(handles.mass2, 'String', '0');
@@ -823,6 +836,9 @@ set(handles.r3x, 'String', '0');
 set(handles.r3y, 'String', '0');
 set(handles.r3z, 'String', '0');
 set(handles.alert, 'String', 'READY');
+set(handles.show, 'Enable', 'off');
+set(handles.stop, 'Enable', 'off');
+set(handles.save, 'Enable', 'off');
 guidata(hObject, handles);
 
 
@@ -841,7 +857,7 @@ function stop_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 set(handles.stop, 'UserData', 1);
-disp(get(handles.stop, 'UserData'));
+% disp(get(handles.stop, 'UserData'));
 guidata(hObject,handles);
 
 
@@ -919,8 +935,11 @@ set(handles.v3_z, 'String', model.v(3).z);
 set(handles.iterations, 'String', model.iteration);
 set(handles.timestep, 'String', model.time_step);
 set(handles.rep_frq, 'String', model.rep_freq);
-guidata(hObject, handles);
 set(handles.alert, 'String', 'LOAD SUCCESS');
+set(handles.show, 'Enable', 'on');
+set(handles.stop, 'Enable', 'on');
+set(handles.save, 'Enable', 'on');
+guidata(hObject, handles);
 
 
 
@@ -980,10 +999,10 @@ function def_view_Callback(hObject, eventdata, handles)
 % hObject    handle to def_view (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-set(handles.az, 'String', '0');
-set(handles.el, 'String', '90');
-az = 0;
-el = 90;
+set(handles.az, 'String', '45');
+set(handles.el, 'String', '45');
+az = 45;
+el = 45;
 view(az,el);
 
 
