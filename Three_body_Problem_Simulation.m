@@ -648,6 +648,10 @@ function show_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 set(handles.stop, 'UserData', 0);
+set(handles.start, 'Enable', 'off');
+set(handles.save, 'Enable', 'off');
+set(handles.load, 'Enable', 'off');
+set(handles.show, 'Enable', 'off');
 if isempty(handles.hist)
     return
 end
@@ -665,17 +669,22 @@ z2 = handles.hist(2).getaxis('z');
 z3 = handles.hist(3).getaxis('z');
 
 max_range = 0;
+min_range = Inf;
 for index = 1:length(handles.hist)
+    min_dim = min([min(handles.hist(index).x), min(handles.hist(index).y) min(handles.hist(index).z)]);
     max_dim = max([max(handles.hist(index).x), max(handles.hist(index).y) max(handles.hist(index).z)]);
-    if max_dim > max_range
+    if abs(max_dim) > max_range
         max_range = max_dim;
-    end 
+    end
+    if min_dim < min_range
+        min_range = min_dim;
+    end
 end
 orbit1 = animatedline('LineWidth', 1, 'Color', 'r');
 orbit2 = animatedline('LineWidth', 1, 'Color', 'g');
 orbit3 = animatedline('LineWidth', 1, 'Color', 'b');
-if max_range~=0
-    set(gca, 'XLim', [-max_range max_range], 'YLim', [-max_range max_range], 'ZLim', [-max_range max_range]);
+if max_range ~= 0 && min_range ~= Inf
+    set(gca, 'XLim', [min_range max_range], 'YLim', [min_range max_range], 'ZLim', [min_range max_range]);
 end
 az = str2double(get(handles.az, 'String'));
 el = str2double(get(handles.el, 'String'));
@@ -722,6 +731,10 @@ else
     set(handles.alert, 'String', 'SIMULATION COMPLETE');
 end
 hold off;
+set(handles.start, 'Enable', 'on');
+set(handles.save, 'Enable', 'on');
+set(handles.load, 'Enable', 'on');
+set(handles.show, 'Enable', 'on');
 guidata(hObject, handles);
 
 
@@ -733,10 +746,12 @@ function start_Callback(hObject, eventdata, handles)
 % AU = 1.5e11;
 % V = 1e3;
 % M = 6e24;
+set(handles.start, 'Enable', 'off');
 set(handles.show, 'Enable', 'off');
 set(handles.stop, 'Enable', 'off');
 set(handles.save, 'Enable', 'off');
 set(handles.load, 'Enable', 'off');
+set(handles.reset, 'Enable', 'off');
 
 handles.mass = [str2double(get(handles.mass1, 'String')), ...
                 str2double(get(handles.mass2, 'String')), ...
@@ -765,17 +780,21 @@ if handles.method=="euler"
 else
     handles.integrator = RK4_integrator(handles.steps, bodies);
 end
-set(handles.alert, 'String', 'CALCULATING ORBIT...');
+set(handles.alert, 'String', 'CALCULATION IN PROGRESS...');
+tic
 [handles.hist, iter] = calc_orbit(handles.integrator, handles.iter, handles.rep_freq);
-
+stop = toc;
 if iter ~= handles.iter
     set(handles.iterations, 'String', num2str(iter));
 end
-set(handles.alert, 'String', 'ORBIT CALCULATION COMPLETE');
+set(handles.alert, 'String', sprintf('COMPLETED IN %s', ... 
+    datestr(seconds(stop),'HH:MM:SS')));
+set(handles.start, 'Enable', 'on');
 set(handles.show, 'Enable', 'on');
 set(handles.stop, 'Enable', 'on');
 set(handles.save, 'Enable', 'on');
 set(handles.load, 'Enable', 'on');
+set(handles.reset, 'Enable', 'on');
 guidata(hObject, handles);
 
 
