@@ -6,9 +6,9 @@ function [history, iteration] = calc_orbit(integrator, steps, report_freq)
         report_freq = 10;
     end
     
-    body_location_hist = Location_History([], [], [], []);
+    body_location_hist = Location_History({}, {}, '');
     for step=1:length(integrator.bodies)
-        body_location_hist(step) = Location_History([], [], [], integrator.bodies(step).name);
+        body_location_hist(step) = Location_History({}, {}, integrator.bodies(step).name);
     end
     
     f = waitbar(0, '1', 'Name', 'Calculating Orbit...', ...
@@ -23,7 +23,7 @@ function [history, iteration] = calc_orbit(integrator, steps, report_freq)
         end
         if mod(step-1, report_freq)==0
             for j=1:length(body_location_hist)
-                body_location_hist(j).append(integrator.bodies(j).location);
+                body_location_hist(j).append(integrator.bodies(j).location.to_cell(), integrator.bodies(j).velocity.to_cell());
             end
         end
         integrator.compute_gravity_step();

@@ -32,6 +32,10 @@ classdef Point < handle
         function outputArg = vectorize(self)
             outputArg = [self.x self.y self.z];
         end
+
+        function outputArg = to_cell(self)
+            outputArg = num2cell(self.vectorize());
+        end
     end
 end
 

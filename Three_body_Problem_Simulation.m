@@ -22,7 +22,7 @@ function varargout = Three_body_Problem_Simulation(varargin)
 
 % Edit the above text to modify the response to help Three_body_Problem_Simulation
 
-% Last Modified by GUIDE v2.5 13-Apr-2020 12:19:39
+% Last Modified by GUIDE v2.5 15-Apr-2020 00:52:52
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -652,27 +652,31 @@ set(handles.start, 'Enable', 'off');
 set(handles.save, 'Enable', 'off');
 set(handles.load, 'Enable', 'off');
 set(handles.show, 'Enable', 'off');
+
 if isempty(handles.hist)
     return
 end
 cla(handles.sims);
 axes(handles.sims);
 
-x1 = handles.hist(1).getaxis('x');
-x2 = handles.hist(2).getaxis('x');
-x3 = handles.hist(3).getaxis('x');
-y1 = handles.hist(1).getaxis('y');
-y2 = handles.hist(2).getaxis('y');
-y3 = handles.hist(3).getaxis('y');
-z1 = handles.hist(1).getaxis('z');
-z2 = handles.hist(2).getaxis('z');
-z3 = handles.hist(3).getaxis('z');
+bodies1 = handles.hist(1).positions;
+bodies2 = handles.hist(2).positions;
+bodies3 = handles.hist(3).positions;
+
+vels1 = handles.hist(1).velocities;
+vels2 = handles.hist(2).velocities;
+vels3 = handles.hist(3).velocities;
 
 max_range = 0;
 min_range = Inf;
 for index = 1:length(handles.hist)
-    min_dim = min([min(handles.hist(index).x), min(handles.hist(index).y) min(handles.hist(index).z)]);
-    max_dim = max([max(handles.hist(index).x), max(handles.hist(index).y) max(handles.hist(index).z)]);
+    min_dim = min([handles.hist(index).get_min('pos', 'x'), ...
+                   handles.hist(index).get_min('pos', 'y'), ...
+                   handles.hist(index).get_min('pos', 'z')]);
+    max_dim = max([handles.hist(index).get_max('pos', 'x'), ...
+                   handles.hist(index).get_max('pos', 'y'), ...
+                   handles.hist(index).get_max('pos', 'z')]);
+    
     if abs(max_dim) > max_range
         max_range = max_dim;
     end
@@ -680,42 +684,44 @@ for index = 1:length(handles.hist)
         min_range = min_dim;
     end
 end
+
 orbit1 = animatedline('LineWidth', 1, 'Color', 'r');
 orbit2 = animatedline('LineWidth', 1, 'Color', 'g');
 orbit3 = animatedline('LineWidth', 1, 'Color', 'b');
-if max_range ~= 0 && min_range ~= Inf
+
+if max_range > min_range
     set(gca, 'XLim', [min_range max_range], 'YLim', [min_range max_range], 'ZLim', [min_range max_range]);
 end
 az = str2double(get(handles.az, 'String'));
 el = str2double(get(handles.el, 'String'));
 view(az, el);
 hold on;
+daspect([1 1 1]);
+
 set(handles.alert, 'String', 'SIMULATING...');
-steps = length(handles.hist(1).x);
+steps = handles.hist(1).num_of_pos;
+tic
 for i = 1:steps
     if get(handles.stop, 'UserData')
         break
     end
     
-    addpoints(orbit1, x1(i), y1(i), z1(i));
-    head1 = scatter3(x1(i), y1(i), z1(i), 'filled', 'MarkerFaceColor', 'r', 'MarkerEdgeColor', 'k');
-    addpoints(orbit2, x2(i), y2(i), z2(i));
-    head2 = scatter3(x2(i), y2(i), z2(i), 'filled', 'MarkerFaceColor', 'g', 'MarkerEdgeColor', 'k');
-    addpoints(orbit3, x3(i), y3(i), z3(i));
-    head3 = scatter3(x3(i), y3(i), z3(i), 'filled', 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k');
+    addpoints(orbit1, bodies1{i}{:});
+    head1 = scatter3(bodies1{i}{:}, 'filled', 'MarkerFaceColor', 'r', 'MarkerEdgeColor', 'k');
+    addpoints(orbit2, bodies2{i}{:});
+    head2 = scatter3(bodies2{i}{:}, 'filled', 'MarkerFaceColor', 'g', 'MarkerEdgeColor', 'k');
+    addpoints(orbit3, bodies3{i}{:});
+    head3 = scatter3(bodies3{i}{:}, 'filled', 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k');
 
     drawnow();
     if get(handles.status, 'Value')
         set(handles.cur_iter, 'String', num2str(i*handles.rep_freq));
-        set(handles.r1x, 'String', sprintf('%.2f', x1(i)));
-        set(handles.r1y, 'String', sprintf('%.2f', y1(i)));
-        set(handles.r1z, 'String', sprintf('%.2f', z1(i)));
-        set(handles.r2x, 'String', sprintf('%.2f', x2(i)));
-        set(handles.r2y, 'String', sprintf('%.2f', y2(i)));
-        set(handles.r2z, 'String', sprintf('%.2f', z2(i)));
-        set(handles.r3x, 'String', sprintf('%.2f', x3(i)));
-        set(handles.r3y, 'String', sprintf('%.2f', y3(i)));
-        set(handles.r3z, 'String', sprintf('%.2f', z3(i)));
+        set(handles.r1, 'String', sprintf('%.2fx  %.2fy  %.2fz', bodies1{i}{:}));
+        set(handles.r2, 'String', sprintf('%.2fx  %.2fy  %.2fz', bodies2{i}{:}));
+        set(handles.r3, 'String', sprintf('%.2fx  %.2fy  %.2fz', bodies3{i}{:}));
+        set(handles.v1, 'String', sprintf('%.2fx  %.2fy  %.2fz', vels1{i}{:}));
+        set(handles.v2, 'String', sprintf('%.2fx  %.2fy  %.2fz', vels2{i}{:}));
+        set(handles.v3, 'String', sprintf('%.2fx  %.2fy  %.2fz', vels3{i}{:}));
     end
 %     pause(0.0001);
     if get(handles.stop, 'UserData')
@@ -725,6 +731,7 @@ for i = 1:steps
     delete(head2);
     delete(head3);
 end
+toc
 if get(handles.stop, 'UserData')
     set(handles.alert, 'String', 'SIMULATION STOPPED');
 else
@@ -845,19 +852,18 @@ set(handles.timestep, 'String', '0.01');
 set(handles.iterations, 'String', '1000');
 set(handles.rep_frq, 'String', '10');
 set(handles.cur_iter, 'String', '0');
-set(handles.r1x, 'String', '0');
-set(handles.r1y, 'String', '0');
-set(handles.r1z, 'String', '0');
-set(handles.r2x, 'String', '0');
-set(handles.r2y, 'String', '0');
-set(handles.r2z, 'String', '0');
-set(handles.r3x, 'String', '0');
-set(handles.r3y, 'String', '0');
-set(handles.r3z, 'String', '0');
+set(handles.r1, 'String', '0');
+set(handles.v1, 'String', '0');
+set(handles.r2, 'String', '0');
+set(handles.v2, 'String', '0');
+set(handles.r3, 'String', '0');
+set(handles.v3, 'String', '0');
 set(handles.alert, 'String', 'READY');
 set(handles.show, 'Enable', 'off');
 set(handles.stop, 'Enable', 'off');
 set(handles.save, 'Enable', 'off');
+set(handles.load, 'Enable', 'on');
+set(handles.start, 'Enable', 'on');
 guidata(hObject, handles);
 
 
