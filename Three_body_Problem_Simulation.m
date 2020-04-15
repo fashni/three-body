@@ -765,13 +765,18 @@ handles.mass = [str2double(get(handles.mass1, 'String')), ...
                 str2double(get(handles.mass2, 'String')), ...
                 str2double(get(handles.mass3, 'String'))] * handles.M;
 
-handles.init_r = [Point(handles.AU * str2double(get(handles.r1_x, 'String')), handles.AU * str2double(get(handles.r1_y, 'String')), handles.AU * str2double(get(handles.r1_z, 'String'))), ...
-                  Point(handles.AU * str2double(get(handles.r2_x, 'String')), handles.AU * str2double(get(handles.r2_y, 'String')), handles.AU * str2double(get(handles.r2_z, 'String'))), ...
-                  Point(handles.AU * str2double(get(handles.r3_x, 'String')), handles.AU * str2double(get(handles.r3_y, 'String')), handles.AU * str2double(get(handles.r3_z, 'String')))];
+handles.init_r = [Point(str2double(get(handles.r1_x, 'String')), str2double(get(handles.r1_y, 'String')), str2double(get(handles.r1_z, 'String'))), ...
+                  Point(str2double(get(handles.r2_x, 'String')), str2double(get(handles.r2_y, 'String')), str2double(get(handles.r2_z, 'String'))), ...
+                  Point(str2double(get(handles.r3_x, 'String')), str2double(get(handles.r3_y, 'String')), str2double(get(handles.r3_z, 'String')))];
 
-handles.init_v = [Point(handles.V * str2double(get(handles.v1_x, 'String')), handles.V * str2double(get(handles.v1_y, 'String')), handles.V * str2double(get(handles.v1_z, 'String'))), ...
-                  Point(handles.V * str2double(get(handles.v2_x, 'String')), handles.V * str2double(get(handles.v2_y, 'String')), handles.V * str2double(get(handles.v2_z, 'String'))), ...
-                  Point(handles.V * str2double(get(handles.v3_x, 'String')), handles.V * str2double(get(handles.v3_y, 'String')), handles.V * str2double(get(handles.v3_z, 'String')))];
+handles.init_v = [Point(str2double(get(handles.v1_x, 'String')), str2double(get(handles.v1_y, 'String')), str2double(get(handles.v1_z, 'String'))), ...
+                  Point(str2double(get(handles.v2_x, 'String')), str2double(get(handles.v2_y, 'String')), str2double(get(handles.v2_z, 'String'))), ...
+                  Point(str2double(get(handles.v3_x, 'String')), str2double(get(handles.v3_y, 'String')), str2double(get(handles.v3_z, 'String')))];
+
+for idx = 1:3
+    handles.init_r(idx).scale(handles.AU);
+    handles.init_v(idx).scale(handles.V);
+end
 
 
 handles.steps = handles.YEAR * str2double(get(handles.timestep, 'String'));
@@ -907,11 +912,15 @@ end
 if pathname==0
     return
 end
-m = handles.mass;
+m = handles.mass/handles.M;
 r = handles.init_r;
 v = handles.init_v;
+for idx = 1:3
+    r(idx) = handles.init_r(idx).scale(1/handles.AU);
+    v(idx) = handles.init_v(idx).scale(1/handles.V);
+end
 method = handles.method;
-time_step = handles.steps;
+time_step = handles.steps/handles.YEAR;
 iteration = handles.iter;
 rep_freq = handles.rep_freq;
 history = handles.hist;

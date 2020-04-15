@@ -36,6 +36,19 @@ classdef Point < handle
         function outputArg = to_cell(self)
             outputArg = num2cell(self.vectorize());
         end
+
+        function varargout = scale(self, scaling_factor)
+            X = self.x .* scaling_factor;
+            Y = self.y .* scaling_factor;
+            Z = self.z .* scaling_factor;
+            if nargout
+                varargout{1} = Point(X, Y, Z);
+            else
+                self.x = X;
+                self.y = Y;
+                self.z = Z;
+            end
+        end
     end
 end
 
