@@ -18,8 +18,8 @@ classdef Euler_integrator < handle
         function outputArg = compute_single_body_acc(self, body_index)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            % G_const = 6.67408e-11;
-            G_const = 66.7;
+            G_const = 6.6743e-11;
+            % G_const = 66.743;
             acc = [0 0 0];
             target_body = self.bodies(body_index);
             target_loc = target_body.location.vectorize();

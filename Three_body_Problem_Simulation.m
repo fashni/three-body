@@ -62,6 +62,10 @@ handles.mass = [];
 handles.init_r = [];
 handles.init_v = [];
 handles.method = 'euler';
+handles.YEAR = 31556925;
+handles.AU = 149597870700; 
+handles.V = (2*pi*handles.AU)/handles.YEAR;
+handles.M = 5.9722e24;
 handles.iter = 1000;
 handles.steps = 0.01;
 handles.rep_freq = 10;
@@ -750,9 +754,6 @@ function start_Callback(hObject, eventdata, handles)
 % hObject    handle to start (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% AU = 1.5e11;
-% V = 1e3;
-% M = 6e24;
 set(handles.start, 'Enable', 'off');
 set(handles.show, 'Enable', 'off');
 set(handles.stop, 'Enable', 'off');
@@ -762,18 +763,18 @@ set(handles.reset, 'Enable', 'off');
 
 handles.mass = [str2double(get(handles.mass1, 'String')), ...
                 str2double(get(handles.mass2, 'String')), ...
-                str2double(get(handles.mass3, 'String'))];
+                str2double(get(handles.mass3, 'String'))] * handles.M;
 
-handles.init_r = [Point(str2double(get(handles.r1_x, 'String')), str2double(get(handles.r1_y, 'String')), str2double(get(handles.r1_z, 'String'))), ...
-                  Point(str2double(get(handles.r2_x, 'String')), str2double(get(handles.r2_y, 'String')), str2double(get(handles.r2_z, 'String'))), ...
-                  Point(str2double(get(handles.r3_x, 'String')), str2double(get(handles.r3_y, 'String')), str2double(get(handles.r3_z, 'String')))];
+handles.init_r = [Point(handles.AU * str2double(get(handles.r1_x, 'String')), handles.AU * str2double(get(handles.r1_y, 'String')), handles.AU * str2double(get(handles.r1_z, 'String'))), ...
+                  Point(handles.AU * str2double(get(handles.r2_x, 'String')), handles.AU * str2double(get(handles.r2_y, 'String')), handles.AU * str2double(get(handles.r2_z, 'String'))), ...
+                  Point(handles.AU * str2double(get(handles.r3_x, 'String')), handles.AU * str2double(get(handles.r3_y, 'String')), handles.AU * str2double(get(handles.r3_z, 'String')))];
 
-handles.init_v = [Point(str2double(get(handles.v1_x, 'String')), str2double(get(handles.v1_y, 'String')), str2double(get(handles.v1_z, 'String'))), ...
-                  Point(str2double(get(handles.v2_x, 'String')), str2double(get(handles.v2_y, 'String')), str2double(get(handles.v2_z, 'String'))), ...
-                  Point(str2double(get(handles.v3_x, 'String')), str2double(get(handles.v3_y, 'String')), str2double(get(handles.v3_z, 'String')))];
+handles.init_v = [Point(handles.V * str2double(get(handles.v1_x, 'String')), handles.V * str2double(get(handles.v1_y, 'String')), handles.V * str2double(get(handles.v1_z, 'String'))), ...
+                  Point(handles.V * str2double(get(handles.v2_x, 'String')), handles.V * str2double(get(handles.v2_y, 'String')), handles.V * str2double(get(handles.v2_z, 'String'))), ...
+                  Point(handles.V * str2double(get(handles.v3_x, 'String')), handles.V * str2double(get(handles.v3_y, 'String')), handles.V * str2double(get(handles.v3_z, 'String')))];
 
 
-handles.steps = str2double(get(handles.timestep, 'String'));
+handles.steps = handles.YEAR * str2double(get(handles.timestep, 'String'));
 handles.iter = str2double(get(handles.iterations, 'String'));
 handles.rep_freq = str2double(get(handles.rep_frq, 'String'));
 
@@ -788,9 +789,16 @@ else
     handles.integrator = RK4_integrator(handles.steps, bodies);
 end
 set(handles.alert, 'String', 'CALCULATION IN PROGRESS...');
+
 tic
 [handles.hist, iter] = calc_orbit(handles.integrator, handles.iter, handles.rep_freq);
 stop = toc;
+
+for idx = 1:3
+    handles.hist(idx).pos_scale(1/handles.AU);
+    handles.hist(idx).vel_scale(1/handles.V);
+end
+
 if iter ~= handles.iter
     set(handles.iterations, 'String', num2str(iter));
 end
@@ -852,12 +860,12 @@ set(handles.timestep, 'String', '0.01');
 set(handles.iterations, 'String', '1000');
 set(handles.rep_frq, 'String', '10');
 set(handles.cur_iter, 'String', '0');
-set(handles.r1, 'String', '0');
-set(handles.v1, 'String', '0');
-set(handles.r2, 'String', '0');
-set(handles.v2, 'String', '0');
-set(handles.r3, 'String', '0');
-set(handles.v3, 'String', '0');
+set(handles.r1, 'String', '0x   0y   0z');
+set(handles.v1, 'String', '0x   0y   0z');
+set(handles.r2, 'String', '0x   0y   0z');
+set(handles.v2, 'String', '0x   0y   0z');
+set(handles.r3, 'String', '0x   0y   0z');
+set(handles.v3, 'String', '0x   0y   0z');
 set(handles.alert, 'String', 'READY');
 set(handles.show, 'Enable', 'off');
 set(handles.stop, 'Enable', 'off');
@@ -961,6 +969,13 @@ set(handles.iterations, 'String', model.iteration);
 set(handles.timestep, 'String', model.time_step);
 set(handles.rep_frq, 'String', model.rep_freq);
 set(handles.alert, 'String', 'LOAD SUCCESS');
+set(handles.cur_iter, 'String', '0');
+set(handles.r1, 'String', '0x   0y   0z');
+set(handles.v1, 'String', '0x   0y   0z');
+set(handles.r2, 'String', '0x   0y   0z');
+set(handles.v2, 'String', '0x   0y   0z');
+set(handles.r3, 'String', '0x   0y   0z');
+set(handles.v3, 'String', '0x   0y   0z');
 set(handles.show, 'Enable', 'on');
 set(handles.stop, 'Enable', 'on');
 set(handles.save, 'Enable', 'on');

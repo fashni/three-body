@@ -18,13 +18,13 @@ classdef RK4_integrator < handle
         function outputArg = compute_single_body_acc(self, body_index)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            % G_const = 6.67408e-11;
-            G_const = 66.7;
+            G_const = 6.6743e-11;
+            % G_const = 66.743;
             target_body = self.bodies(body_index);
             target_loc = target_body.location.vectorize();
             target_vel = target_body.velocity.vectorize();
             
-            [acc, k1, k2, k3, k4] = deal([0 0 0]);
+            acc = [0 0 0];
             if target_body.mass == 0
                 outputArg = Point(acc);
                 return

@@ -82,15 +82,17 @@ classdef Location_History < handle
             outputArg = max(max_val);
         end
 
-%         function outputArg = getaxis(self, axis)
-%             if axis == 'x'
-%                 outputArg = self.x;
-%             elseif axis == 'y'
-%                 outputArg = self.y;
-%             elseif axis == 'z'
-%                 outputArg = self.z;
-%             end
-%         end
+        function pos_scale(self, scaling_factor)
+            for idx = 1:self.num_of_pos
+                self.positions{idx} = num2cell([self.positions{idx}{:}]*scaling_factor);
+            end
+        end
+
+        function vel_scale(self, scaling_factor)
+            for idx = 1:self.num_of_vel
+                self.velocities{idx} = num2cell([self.velocities{idx}{:}]*scaling_factor);
+            end
+        end
     end
 end
 
