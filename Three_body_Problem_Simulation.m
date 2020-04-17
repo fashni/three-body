@@ -62,13 +62,16 @@ handles.mass = [];
 handles.init_r = [];
 handles.init_v = [];
 handles.method = 'euler';
-handles.YEAR = 31556925;
-handles.AU = 149597870700; 
-handles.V = (2*pi*handles.AU)/handles.YEAR;
-handles.M = 5.9722e24;
-handles.iter = 1000;
-handles.steps = 0.01;
-handles.rep_freq = 10;
+Earth = containers.Map({'mass', 'aphelion', 'perihelion', 'period', 'aph_speed', 'per_speed'}, ...
+                       [5.9722e24, 1.0167, 0.98329, 365.256363004, 29290, 30290]);
+handles.DAY = 24*60*60; % s
+handles.YEAR = Earth('period') * handles.DAY; % s
+handles.AU = 149597870700 * Earth('aphelion'); % m
+handles.V = Earth('aph_speed'); % m/s
+handles.M = Earth('mass');
+handles.iter = 365;
+handles.steps = 1;
+handles.rep_freq = 1;
 set(handles.alert, 'String', 'READY');
 set(handles.show, 'Enable', 'off');
 set(handles.stop, 'Enable', 'off');
@@ -696,9 +699,6 @@ orbit3 = animatedline('LineWidth', 1, 'Color', 'b');
 if max_range > min_range
     set(gca, 'XLim', [min_range max_range], 'YLim', [min_range max_range], 'ZLim', [min_range max_range]);
 end
-az = str2double(get(handles.az, 'String'));
-el = str2double(get(handles.el, 'String'));
-view(az, el);
 hold on;
 daspect([1 1 1]);
 
@@ -731,9 +731,11 @@ for i = 1:steps
     if get(handles.stop, 'UserData')
         break
     end
-    delete(head1);
-    delete(head2);
-    delete(head3);
+    if i ~= steps
+        delete(head1);
+        delete(head2);
+        delete(head3);
+    end
 end
 toc
 if get(handles.stop, 'UserData')
@@ -779,7 +781,7 @@ for idx = 1:3
 end
 
 
-handles.steps = handles.YEAR * str2double(get(handles.timestep, 'String'));
+handles.steps = handles.DAY * str2double(get(handles.timestep, 'String'));
 handles.iter = str2double(get(handles.iterations, 'String'));
 handles.rep_freq = str2double(get(handles.rep_frq, 'String'));
 
@@ -829,9 +831,9 @@ handles.integrator = [];
 handles.mass = [];
 handles.init_r = [];
 handles.init_v = [];
-handles.iter = 1000;
-handles.steps = 0.01;
-handles.rep_freq = 10;
+handles.iter = 365;
+handles.steps = 1;
+handles.rep_freq = 1;
 handles.method = 'euler';
 handles.hist = [];
 cla('reset');
@@ -861,9 +863,9 @@ set(handles.v2_z, 'String', '0');
 set(handles.v3_x, 'String', '0');
 set(handles.v3_y, 'String', '0');
 set(handles.v3_z, 'String', '0');
-set(handles.timestep, 'String', '0.01');
-set(handles.iterations, 'String', '1000');
-set(handles.rep_frq, 'String', '10');
+set(handles.timestep, 'String', num2str(handles.steps));
+set(handles.iterations, 'String', num2str(handles.iter));
+set(handles.rep_frq, 'String', num2str(handles.rep_freq));
 set(handles.cur_iter, 'String', '0');
 set(handles.r1, 'String', '0x   0y   0z');
 set(handles.v1, 'String', '0x   0y   0z');
@@ -920,7 +922,7 @@ for idx = 1:3
     v(idx) = handles.init_v(idx).scale(1/handles.V);
 end
 method = handles.method;
-time_step = handles.steps/handles.YEAR;
+time_step = handles.steps/handles.DAY;
 iteration = handles.iter;
 rep_freq = handles.rep_freq;
 history = handles.hist;
