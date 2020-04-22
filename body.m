@@ -1,4 +1,4 @@
-classdef body
+classdef Body
     %UNTITLED2 Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -10,7 +10,7 @@ classdef body
     end
     
     methods
-        function obj = body(mass, location, velocity, name)
+        function obj = Body(mass, location, velocity, name)
             %UNTITLED2 Construct an instance of this class
             %   Detailed explanation goes here
             if nargin==3

@@ -1,14 +1,11 @@
-function [history, iteration] = calc_orbit(integrator, steps, report_freq)
+function [history, iteration] = calc_orbit(integrator, steps)
     if nargin == 1
         steps = 1000;
-        report_freq = 10;
-    elseif nargin == 2
-        report_freq = 10;
     end
     
     body_location_hist = Location_History({}, {}, '');
-    for step=1:length(integrator.bodies)
-        body_location_hist(step) = Location_History({}, {}, integrator.bodies(step).name);
+    for idx=1:length(integrator.bodies)
+        body_location_hist(idx) = Location_History({}, {}, integrator.bodies(idx).name);
     end
     
     f = waitbar(0, '1', 'Name', 'Calculating Orbit...', ...
@@ -21,13 +18,14 @@ function [history, iteration] = calc_orbit(integrator, steps, report_freq)
             step = step-1;
             break
         end
-        if mod(step-1, report_freq)==0
-            for j=1:length(body_location_hist)
-                body_location_hist(j).append(integrator.bodies(j).location.to_cell(), integrator.bodies(j).velocity.to_cell());
-            end
+
+        % trajectory calculation
+        for idx = 1:length(body_location_hist)
+            body_location_hist(idx).append(integrator.bodies(idx).location.to_cell(), integrator.bodies(idx).velocity.to_cell());
         end
         integrator.compute_gravity_step();
         
+        % time estimation
         elapsed = toc;
         eta = elapsed/(step/steps);
         remain = eta-elapsed;

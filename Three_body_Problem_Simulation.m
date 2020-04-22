@@ -665,6 +665,7 @@ if isempty(handles.hist)
 end
 cla(handles.sims);
 axes(handles.sims);
+handles.rep_freq = str2double(get(handles.rep_frq, 'String'));
 
 bodies1 = handles.hist(1).positions;
 bodies2 = handles.hist(2).positions;
@@ -705,45 +706,44 @@ daspect([1 1 1]);
 set(handles.alert, 'String', 'SIMULATING...');
 steps = handles.hist(1).num_of_pos;
 tic
-for i = 1:steps
-    if get(handles.stop, 'UserData')
-        break
-    end
-    
+for i = 1:handles.rep_freq:steps
     addpoints(orbit1, bodies1{i}{:});
     head1 = scatter3(bodies1{i}{:}, 'filled', 'MarkerFaceColor', 'r', 'MarkerEdgeColor', 'k');
     addpoints(orbit2, bodies2{i}{:});
     head2 = scatter3(bodies2{i}{:}, 'filled', 'MarkerFaceColor', 'g', 'MarkerEdgeColor', 'k');
     addpoints(orbit3, bodies3{i}{:});
     head3 = scatter3(bodies3{i}{:}, 'filled', 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k');
-
+    
     drawnow();
     if get(handles.status, 'Value')
-        set(handles.cur_iter, 'String', num2str(i*handles.rep_freq));
-        set(handles.r1, 'String', sprintf('%.2fx  %.2fy  %.2fz', bodies1{i}{:}));
-        set(handles.r2, 'String', sprintf('%.2fx  %.2fy  %.2fz', bodies2{i}{:}));
-        set(handles.r3, 'String', sprintf('%.2fx  %.2fy  %.2fz', bodies3{i}{:}));
-        set(handles.v1, 'String', sprintf('%.2fx  %.2fy  %.2fz', vels1{i}{:}));
-        set(handles.v2, 'String', sprintf('%.2fx  %.2fy  %.2fz', vels2{i}{:}));
-        set(handles.v3, 'String', sprintf('%.2fx  %.2fy  %.2fz', vels3{i}{:}));
+        set(handles.cur_iter, 'String', num2str(i));
+        set(handles.r1, 'String', sprintf('%.3fx  %.3fy  %.3fz', bodies1{i}{:}));
+        set(handles.r2, 'String', sprintf('%.3fx  %.3fy  %.3fz', bodies2{i}{:}));
+        set(handles.r3, 'String', sprintf('%.3fx  %.3fy  %.3fz', bodies3{i}{:}));
+        set(handles.v1, 'String', sprintf('%.3fx  %.3fy  %.3fz', vels1{i}{:}));
+        set(handles.v2, 'String', sprintf('%.3fx  %.3fy  %.3fz', vels2{i}{:}));
+        set(handles.v3, 'String', sprintf('%.3fx  %.3fy  %.3fz', vels3{i}{:}));
     end
-%     pause(0.0001);
+
     if get(handles.stop, 'UserData')
         break
     end
-    if i ~= steps
+
+    if i + handles.rep_freq <= steps
         delete(head1);
         delete(head2);
         delete(head3);
     end
 end
 toc
+
 if get(handles.stop, 'UserData')
     set(handles.alert, 'String', 'SIMULATION STOPPED');
 else
     set(handles.alert, 'String', 'SIMULATION COMPLETE');
 end
 hold off;
+
 set(handles.start, 'Enable', 'on');
 set(handles.save, 'Enable', 'on');
 set(handles.load, 'Enable', 'on');
@@ -785,9 +785,9 @@ handles.steps = handles.DAY * str2double(get(handles.timestep, 'String'));
 handles.iter = str2double(get(handles.iterations, 'String'));
 handles.rep_freq = str2double(get(handles.rep_frq, 'String'));
 
-bodies = body(0,0,0);
+bodies = Body(0,0,0);
 for i=1:3
-    bodies(i) = body(handles.mass(i), handles.init_r(i), handles.init_v(i), ['star' num2str(i)]);
+    bodies(i) = Body(handles.mass(i), handles.init_r(i), handles.init_v(i), ['star' num2str(i)]);
 end
 
 if handles.method=="euler"
@@ -798,7 +798,7 @@ end
 set(handles.alert, 'String', 'CALCULATION IN PROGRESS...');
 
 tic
-[handles.hist, iter] = calc_orbit(handles.integrator, handles.iter, handles.rep_freq);
+[handles.hist, iter] = calc_orbit(handles.integrator, handles.iter);
 stop = toc;
 
 for idx = 1:3
@@ -897,6 +897,10 @@ function stop_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 set(handles.stop, 'UserData', 1);
+set(handles.start, 'Enable', 'on');
+set(handles.save, 'Enable', 'on');
+set(handles.load, 'Enable', 'on');
+set(handles.show, 'Enable', 'on');
 % disp(get(handles.stop, 'UserData'));
 guidata(hObject,handles);
 
@@ -1055,6 +1059,7 @@ set(handles.el, 'String', '45');
 az = 45;
 el = 45;
 view(az,el);
+set(handles.reset, 'Enable', 'on');
 
 
 % --- Executes on button press in status.
