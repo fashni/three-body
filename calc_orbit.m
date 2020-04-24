@@ -1,6 +1,9 @@
-function [history, iteration] = calc_orbit(integrator, steps)
+function [history, iteration] = calc_orbit(integrator, steps, est)
     if nargin == 1
         steps = 1000;
+        est = 0;
+    elseif nargin == 2
+        est = 0;
     end
     
     body_location_hist = Location_History({}, {}, '');
@@ -8,11 +11,13 @@ function [history, iteration] = calc_orbit(integrator, steps)
         body_location_hist(idx) = Location_History({}, {}, integrator.bodies(idx).name);
     end
     
-    f = waitbar(0, '1', 'Name', 'Calculating Orbit...', ...
+    f = waitbar(0, 'Please wait...', 'Name', 'Calculating Orbit...', ...
         'CreateCancelBtn', 'setappdata(gcbf,''canceling'',1);');
-    set(f,'Position', [377.2500 245.9375 270 100]);
     setappdata(f,'canceling',0);
-    tic
+    if est
+        set(f,'Position', [377.2500 245.9375 270 100]);
+        tic
+    end
     for step=1:steps
         if getappdata(f,'canceling')
             step = step-1;
@@ -26,13 +31,15 @@ function [history, iteration] = calc_orbit(integrator, steps)
         integrator.compute_gravity_step();
         
         % time estimation
-        elapsed = toc;
-        eta = elapsed/(step/steps);
-        remain = eta-elapsed;
-        msg = sprintf('Progress: %.2f %%\nTime left: %s\nTime elapsed: %s\nSpeed: %.2f iter/sec', ...
-            (step/steps)*100, datestr(seconds(remain),'HH:MM:SS'), ...
-            datestr(seconds(elapsed),'HH:MM:SS'), step/elapsed);
-        waitbar(step/steps, f, msg);
+        if est
+            elapsed = toc;
+            eta = elapsed/(step/steps);
+            remain = eta-elapsed;
+            msg = sprintf('Progress: %.2f %%\nTime left: %s\nTime elapsed: %s\nSpeed: %.2f iter/sec', ...
+                (step/steps)*100, datestr(seconds(remain),'HH:MM:SS'), ...
+                datestr(seconds(elapsed),'HH:MM:SS'), step/elapsed);
+            waitbar(step/steps, f, msg);
+        end
     end
     delete(f)
     history = body_location_hist;

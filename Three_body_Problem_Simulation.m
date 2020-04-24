@@ -22,7 +22,7 @@ function varargout = Three_body_Problem_Simulation(varargin)
 
 % Edit the above text to modify the response to help Three_body_Problem_Simulation
 
-% Last Modified by GUIDE v2.5 15-Apr-2020 00:52:52
+% Last Modified by GUIDE v2.5 24-Apr-2020 20:53:19
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -76,6 +76,8 @@ set(handles.alert, 'String', 'READY');
 set(handles.show, 'Enable', 'off');
 set(handles.stop, 'Enable', 'off');
 set(handles.save, 'Enable', 'off');
+set(handles.options, 'Visible', 'off');
+set(handles.opn_options, 'UserData', 0);
 view(45,45);
 grid on;
 
@@ -724,15 +726,26 @@ for i = 1:handles.rep_freq:steps
         set(handles.v2, 'String', sprintf('%.3fx  %.3fy  %.3fz', vels2{i}{:}));
         set(handles.v3, 'String', sprintf('%.3fx  %.3fy  %.3fz', vels3{i}{:}));
     end
-
+    
     if get(handles.stop, 'UserData')
         break
     end
+    
+    delete(head1);
+    delete(head2);
+    delete(head3);
 
-    if i + handles.rep_freq <= steps
-        delete(head1);
-        delete(head2);
-        delete(head3);
+    if i + handles.rep_freq > steps
+        scatter3(bodies1{end}{:}, 'filled', 'MarkerFaceColor', 'r', 'MarkerEdgeColor', 'k');
+        scatter3(bodies2{end}{:}, 'filled', 'MarkerFaceColor', 'g', 'MarkerEdgeColor', 'k');
+        scatter3(bodies3{end}{:}, 'filled', 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k');
+        set(handles.cur_iter, 'String', num2str(steps));
+        set(handles.r1, 'String', sprintf('%.3fx  %.3fy  %.3fz', bodies1{end}{:}));
+        set(handles.r2, 'String', sprintf('%.3fx  %.3fy  %.3fz', bodies2{end}{:}));
+        set(handles.r3, 'String', sprintf('%.3fx  %.3fy  %.3fz', bodies3{end}{:}));
+        set(handles.v1, 'String', sprintf('%.3fx  %.3fy  %.3fz', vels1{end}{:}));
+        set(handles.v2, 'String', sprintf('%.3fx  %.3fy  %.3fz', vels2{end}{:}));
+        set(handles.v3, 'String', sprintf('%.3fx  %.3fy  %.3fz', vels3{end}{:}));
     end
 end
 toc
@@ -798,7 +811,7 @@ end
 set(handles.alert, 'String', 'CALCULATION IN PROGRESS...');
 
 tic
-[handles.hist, iter] = calc_orbit(handles.integrator, handles.iter);
+[handles.hist, iter] = calc_orbit(handles.integrator, handles.iter, get(handles.est, 'Value'));
 stop = toc;
 
 for idx = 1:3
@@ -1069,3 +1082,27 @@ function status_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of status
+
+
+% --- Executes on button press in est.
+function est_Callback(hObject, eventdata, handles)
+% hObject    handle to est (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of est
+
+
+% --- Executes on button press in opn_options.
+function opn_options_Callback(hObject, eventdata, handles)
+% hObject    handle to opn_options (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+if get(handles.opn_options, 'UserData')
+    set(handles.options, 'Visible', 'off');
+    set(handles.opn_options, 'UserData', 0);
+else
+    set(handles.options, 'Visible', 'on');
+    set(handles.opn_options, 'UserData', 1);
+end
+guidata(hObject, handles);
