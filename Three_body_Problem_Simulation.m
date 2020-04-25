@@ -656,26 +656,18 @@ function show_Callback(hObject, eventdata, handles)
 % hObject    handle to show (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+if isempty(handles.hist)
+    return
+end
 set(handles.stop, 'UserData', 0);
 set(handles.start, 'Enable', 'off');
 set(handles.save, 'Enable', 'off');
 set(handles.load, 'Enable', 'off');
 set(handles.show, 'Enable', 'off');
 
-if isempty(handles.hist)
-    return
-end
 cla(handles.sims);
 axes(handles.sims);
 handles.rep_freq = str2double(get(handles.rep_frq, 'String'));
-
-bodies1 = handles.hist(1).positions;
-bodies2 = handles.hist(2).positions;
-bodies3 = handles.hist(3).positions;
-
-vels1 = handles.hist(1).velocities;
-vels2 = handles.hist(2).velocities;
-vels3 = handles.hist(3).velocities;
 
 max_range = 0;
 min_range = Inf;
@@ -707,48 +699,41 @@ daspect([1 1 1]);
 
 set(handles.alert, 'String', 'SIMULATING...');
 steps = handles.hist(1).num_of_pos;
-tic
 for i = 1:handles.rep_freq:steps
-    addpoints(orbit1, bodies1{i}{:});
-    head1 = scatter3(bodies1{i}{:}, 'filled', 'MarkerFaceColor', 'r', 'MarkerEdgeColor', 'k');
-    addpoints(orbit2, bodies2{i}{:});
-    head2 = scatter3(bodies2{i}{:}, 'filled', 'MarkerFaceColor', 'g', 'MarkerEdgeColor', 'k');
-    addpoints(orbit3, bodies3{i}{:});
-    head3 = scatter3(bodies3{i}{:}, 'filled', 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k');
+    body1 = num2cell(handles.hist(1).positions(i, :));
+    body2 = num2cell(handles.hist(2).positions(i, :));
+    body3 = num2cell(handles.hist(3).positions(i, :));
+    addpoints(orbit1, body1{:});
+    head1 = scatter3(body1{:}, 'filled', 'MarkerFaceColor', 'r', 'MarkerEdgeColor', 'k');
+    addpoints(orbit2, body2{:});
+    head2 = scatter3(body2{:}, 'filled', 'MarkerFaceColor', 'g', 'MarkerEdgeColor', 'k');
+    addpoints(orbit3, body3{:});
+    head3 = scatter3(body3{:}, 'filled', 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k');
     
     drawnow();
     if get(handles.status, 'Value')
+        vel1 = num2cell(handles.hist(1).velocities(i, :));
+        vel2 = num2cell(handles.hist(2).velocities(i, :));
+        vel3 = num2cell(handles.hist(3).velocities(i, :));
         set(handles.cur_iter, 'String', num2str(i));
-        set(handles.r1, 'String', sprintf('%.3fx  %.3fy  %.3fz', bodies1{i}{:}));
-        set(handles.r2, 'String', sprintf('%.3fx  %.3fy  %.3fz', bodies2{i}{:}));
-        set(handles.r3, 'String', sprintf('%.3fx  %.3fy  %.3fz', bodies3{i}{:}));
-        set(handles.v1, 'String', sprintf('%.3fx  %.3fy  %.3fz', vels1{i}{:}));
-        set(handles.v2, 'String', sprintf('%.3fx  %.3fy  %.3fz', vels2{i}{:}));
-        set(handles.v3, 'String', sprintf('%.3fx  %.3fy  %.3fz', vels3{i}{:}));
+        set(handles.r1, 'String', sprintf('%.3fx  %.3fy  %.3fz', body1{:}));
+        set(handles.r2, 'String', sprintf('%.3fx  %.3fy  %.3fz', body2{:}));
+        set(handles.r3, 'String', sprintf('%.3fx  %.3fy  %.3fz', body3{:}));
+        set(handles.v1, 'String', sprintf('%.3fx  %.3fy  %.3fz', vel1{:}));
+        set(handles.v2, 'String', sprintf('%.3fx  %.3fy  %.3fz', vel2{:}));
+        set(handles.v3, 'String', sprintf('%.3fx  %.3fy  %.3fz', vel3{:}));
     end
     
     if get(handles.stop, 'UserData')
         break
     end
     
-    delete(head1);
-    delete(head2);
-    delete(head3);
-
-    if i + handles.rep_freq > steps
-        scatter3(bodies1{end}{:}, 'filled', 'MarkerFaceColor', 'r', 'MarkerEdgeColor', 'k');
-        scatter3(bodies2{end}{:}, 'filled', 'MarkerFaceColor', 'g', 'MarkerEdgeColor', 'k');
-        scatter3(bodies3{end}{:}, 'filled', 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k');
-        set(handles.cur_iter, 'String', num2str(steps));
-        set(handles.r1, 'String', sprintf('%.3fx  %.3fy  %.3fz', bodies1{end}{:}));
-        set(handles.r2, 'String', sprintf('%.3fx  %.3fy  %.3fz', bodies2{end}{:}));
-        set(handles.r3, 'String', sprintf('%.3fx  %.3fy  %.3fz', bodies3{end}{:}));
-        set(handles.v1, 'String', sprintf('%.3fx  %.3fy  %.3fz', vels1{end}{:}));
-        set(handles.v2, 'String', sprintf('%.3fx  %.3fy  %.3fz', vels2{end}{:}));
-        set(handles.v3, 'String', sprintf('%.3fx  %.3fy  %.3fz', vels3{end}{:}));
+    if i + handles.rep_freq <= steps        
+        delete(head1);
+        delete(head2);
+        delete(head3);
     end
 end
-toc
 
 if get(handles.stop, 'UserData')
     set(handles.alert, 'String', 'SIMULATION STOPPED');
@@ -769,6 +754,7 @@ function start_Callback(hObject, eventdata, handles)
 % hObject    handle to start (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles.hist = [];
 set(handles.start, 'Enable', 'off');
 set(handles.show, 'Enable', 'off');
 set(handles.stop, 'Enable', 'off');
@@ -822,8 +808,7 @@ end
 if iter ~= handles.iter
     set(handles.iterations, 'String', num2str(iter));
 end
-set(handles.alert, 'String', sprintf('COMPLETED IN %s', ... 
-    datestr(seconds(stop),'HH:MM:SS')));
+set(handles.alert, 'String', sprintf('COMPLETED IN %s', datestr(seconds(stop),'HH:MM:SS')));
 set(handles.start, 'Enable', 'on');
 set(handles.show, 'Enable', 'on');
 set(handles.stop, 'Enable', 'on');

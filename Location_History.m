@@ -16,40 +16,42 @@ classdef Location_History < handle
             %   Detailed explanation goes here
             self.positions = pos;
             self.velocities = vel;
-            self.num_of_pos = length(pos);
-            self.num_of_vel = length(vel);
+            [self.num_of_pos, ~] = size(pos);
+            [self.num_of_vel, ~] = size(vel);
             self.name = name;
         end
         
         function append(self, pos, vel)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            self.positions{end + 1} = pos;
-            self.num_of_pos = length(self.positions);
-            self.velocities{end + 1} = vel;
-            self.num_of_vel = length(self.velocities);
+            [p, ~] = size(pos);
+            [v, ~] = size(vel);
+            self.positions = cat(1, self.positions, pos);
+            self.velocities = cat(1, self.velocities, vel);
+            self.num_of_pos = self.num_of_pos + p;
+            self.num_of_vel = self.num_of_vel + v;
         end
         
         function outputArg = get_min(self, prop, axis)
-            min_val = [];
+            min_val = zeros(1,self.num_of_pos);
             if prop == "vel"
                 for idx = 1:self.num_of_vel
                     if axis == 'x'
-                        min_val = [min_val self.velocities{idx}{1}];
+                        min_val(idx) = self.velocities(idx, 1);
                     elseif axis == 'y'
-                        min_val = [min_val self.velocities{idx}{2}];
+                        min_val(idx) = self.velocities(idx, 2);
                     elseif axis == 'z'
-                        min_val = [min_val self.velocities{idx}{3}];
+                        min_val(idx) = self.velocities(idx, 3);
                     end
                 end
             elseif prop == "pos"
                 for idx = 1:self.num_of_pos
                     if axis == 'x'
-                        min_val = [min_val self.positions{idx}{1}];
+                        min_val(idx) = self.positions(idx, 1);
                     elseif axis == 'y'
-                        min_val = [min_val self.positions{idx}{2}];
+                        min_val(idx) = self.positions(idx, 2);
                     elseif axis == 'z'
-                        min_val = [min_val self.positions{idx}{3}];
+                        min_val(idx) = self.positions(idx, 3);
                     end
                 end
             end
@@ -57,25 +59,25 @@ classdef Location_History < handle
         end
         
         function outputArg = get_max(self, prop, axis)
-            max_val = [];
+            max_val = zeros(1,self.num_of_pos);
             if prop == "vel"
                 for idx = 1:self.num_of_vel
                     if axis == 'x'
-                        max_val = [max_val self.velocities{idx}{1}];
+                        max_val(idx) = self.velocities(idx, 1);
                     elseif axis == 'y'
-                        max_val = [max_val self.velocities{idx}{2}];
+                        max_val(idx) = self.velocities(idx, 2);
                     elseif axis == 'z'
-                        max_val = [max_val self.velocities{idx}{3}];
+                        max_val(idx) = self.velocities(idx, 3);
                     end
                 end
             elseif prop == "pos"
                 for idx = 1:self.num_of_pos
                     if axis == 'x'
-                        max_val = [max_val self.positions{idx}{1}];
+                        max_val(idx) = self.positions(idx, 1);
                     elseif axis == 'y'
-                        max_val = [max_val self.positions{idx}{2}];
+                        max_val(idx) = self.positions(idx, 2);
                     elseif axis == 'z'
-                        max_val = [max_val self.positions{idx}{3}];
+                        max_val(idx) = self.positions(idx, 3);
                     end
                 end
             end
@@ -83,15 +85,11 @@ classdef Location_History < handle
         end
 
         function pos_scale(self, scaling_factor)
-            for idx = 1:self.num_of_pos
-                self.positions{idx} = num2cell([self.positions{idx}{:}]*scaling_factor);
-            end
+            self.positions = scaling_factor * self.positions;
         end
 
         function vel_scale(self, scaling_factor)
-            for idx = 1:self.num_of_vel
-                self.velocities{idx} = num2cell([self.velocities{idx}{:}]*scaling_factor);
-            end
+            self.velocities = scaling_factor * self.velocities;
         end
     end
 end
