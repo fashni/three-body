@@ -22,7 +22,7 @@ function varargout = Three_body_Problem_Simulation(varargin)
 
 % Edit the above text to modify the response to help Three_body_Problem_Simulation
 
-% Last Modified by GUIDE v2.5 24-Apr-2020 20:53:19
+% Last Modified by GUIDE v2.5 27-Apr-2020 09:38:47
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -668,6 +668,7 @@ set(handles.show, 'Enable', 'off');
 cla(handles.sims);
 axes(handles.sims);
 handles.rep_freq = str2double(get(handles.rep_frq, 'String'));
+mass = handles.mass;
 
 max_range = 0;
 min_range = Inf;
@@ -695,6 +696,7 @@ if max_range > min_range
     set(gca, 'XLim', [min_range max_range], 'YLim', [min_range max_range], 'ZLim', [min_range max_range]);
 end
 hold on;
+cmplot = scatter3(NaN, NaN, NaN);
 daspect([1 1 1]);
 
 set(handles.alert, 'String', 'SIMULATING...');
@@ -709,6 +711,14 @@ for i = 1:handles.rep_freq:steps
     head2 = scatter3(body2{:}, 'filled', 'MarkerFaceColor', 'g', 'MarkerEdgeColor', 'k');
     addpoints(orbit3, body3{:});
     head3 = scatter3(body3{:}, 'filled', 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k');
+    
+    if get(handles.barycenter, 'Value')
+        cm = num2cell((mass(1)*handles.hist(1).positions(i, :) + ...
+        mass(2)*handles.hist(2).positions(i, :) + ...
+        mass(3)*handles.hist(3).positions(i, :)) / ...
+        (mass(1)+mass(2)+mass(3)));
+        cmplot = scatter3(cm{:}, 'filled', 'MarkerFaceColor', 'k', 'MarkerEdgeColor', 'k');
+    end
     
     drawnow();
     if get(handles.status, 'Value')
@@ -728,7 +738,8 @@ for i = 1:handles.rep_freq:steps
         break
     end
     
-    if i + handles.rep_freq <= steps        
+    if i + handles.rep_freq <= steps
+        delete(cmplot);
         delete(head1);
         delete(head2);
         delete(head3);
@@ -1077,6 +1088,13 @@ function est_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of est
 
+% --- Executes on button press in barycenter.
+function barycenter_Callback(hObject, eventdata, handles)
+% hObject    handle to barycenter (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of barycenter
 
 % --- Executes on button press in opn_options.
 function opn_options_Callback(hObject, eventdata, handles)
